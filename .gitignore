@@ -13,3 +13,4 @@ packages/**/*
 
 environment.json
 config.secret.*
+.idea

@@ -1,83 +1,18 @@
-import { Callback, Context } from "aws-lambda";
-import { S3 } from "aws-sdk";
-
+// @ts-ignore
+import * as cors from 'cors'
 import { fs } from "mz";
+import fetch from "node-fetch";
 import * as path from "path";
 import * as Raven from "raven";
 import * as rimraf from "rimraf";
-import * as zlib from "zlib";
-import fetch from "node-fetch";
-
 import findDependencyDependencies from "./dependencies/find-dependency-dependencies";
 import installDependencies from "./dependencies/install-dependencies";
-
 import findPackageInfos, { IPackage } from "./packages/find-package-infos";
 import findRequires, { IFileData } from "./packages/find-requires";
 
 import getHash from "./utils/get-hash";
 
-import { VERSION } from "../config";
-import env from "./config.secret";
-import resolve = require("resolve");
-import { packageFilter } from "./utils/resolver";
 import { execSync } from "child_process";
-
-const { BUCKET_NAME } = process.env;
-const SAVE_TO_S3 = !process.env.DISABLE_CACHING;
-
-if (env.SENTRY_URL) {
-  Raven.config(env.SENTRY_URL!).install();
-}
-
-const s3 = new S3();
-
-/**
- * Remove a file from the content
- *
- * @param {IFileData} data
- * @param {string} deletePath
- */
-function deleteHardcodedRequires(data: IFileData, deletePath: string) {
-  if (data[deletePath]) {
-    Object.keys(data).forEach((p) => {
-      const requires = data[p].requires;
-      if (requires) {
-        data[p].requires = requires.filter(
-          (x) => path.join(path.dirname(p), x) !== deletePath,
-        );
-      }
-    });
-    delete data[deletePath];
-  }
-}
-
-function saveToS3(
-  dependency: { name: string; version: string },
-  response: object,
-) {
-  if (!BUCKET_NAME) {
-    throw new Error("No bucket has been specified");
-  }
-
-  console.log(`Saving ${dependency} to S3`);
-  s3.putObject(
-    {
-      Body: zlib.gzipSync(JSON.stringify(response)),
-      Bucket: BUCKET_NAME,
-      Key: `v${VERSION}/packages/${dependency.name}/${dependency.version}.json`,
-      ACL: "public-read",
-      ContentType: "application/json",
-      CacheControl: "public, max-age=31536000",
-      ContentEncoding: "gzip",
-    },
-    (err) => {
-      if (err) {
-        console.log(err);
-        throw err;
-      }
-    },
-  );
-}
 
 async function getContents(
   dependency: any,
@@ -152,7 +87,7 @@ function verifyModuleField(pkg: IPackage, pkgLoc: string) {
 let packaging = false;
 const packagingDeps = new Set<string>();
 
-export async function call(event: any, context: Context, cb: Callback) {
+export async function call(event: any, context: any, cb: any) {
   /** Immediate response for WarmUP plugin */
   if (event.source === "serverless-plugin-warmup") {
     console.log("WarmUP - Lambda is warm!");
@@ -242,9 +177,9 @@ export async function call(event: any, context: Context, cb: Callback) {
       ),
     };
 
-    if (process.env.IN_LAMBDA) {
-      saveToS3(dependency, response);
-    }
+    // if (process.env.IN_LAMBDA) {
+    //   saveToS3(dependency, response);
+    // }
 
     // Cleanup
     try {
@@ -282,9 +217,9 @@ export async function call(event: any, context: Context, cb: Callback) {
           throw new Error(responseFromFly.error);
         }
 
-        if (process.env.IN_LAMBDA) {
-          saveToS3(dependency, responseFromFly);
-        }
+        // if (process.env.IN_LAMBDA) {
+        //   saveToS3(dependency, responseFromFly);
+        // }
 
         cb(undefined, responseFromFly);
       } catch (ee) {
@@ -307,14 +242,15 @@ if (!process.env.IN_LAMBDA) {
 
   const app = express();
 
+  app.use(cors());
+
   app.get("/*", (req: any, res: any) => {
     const packageParts = req.url.replace("/", "").split("@");
     const version = packageParts.pop();
 
-    const ctx = {} as Context;
+    const ctx = {} as any;
     const dep = { name: packageParts.join("@"), version };
 
-    console.log(dep);
     call(dep, ctx, (err: any, result: any) => {
       console.log(err);
 

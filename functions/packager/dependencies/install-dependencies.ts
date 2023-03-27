@@ -20,7 +20,7 @@ export default function installDependencies(
         "cli",
       )} add ${depString} ${
         spec.type === "git" ? "" : "--ignore-scripts"
-      } --no-lockfile --non-interactive --no-bin-links --ignore-engines --skip-integrity-check --cache-folder ./`,
+      } --registry https://registry.npmmirror.com --no-lockfile --non-interactive --no-bin-links --ignore-engines --skip-integrity-check --cache-folder ./`,
       (err, stdout, stderr) => {
         if (err) {
           console.warn("got error from install: " + err);
