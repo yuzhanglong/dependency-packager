@@ -1,7 +1,8 @@
-import { dirname, join } from 'path';
-import * as JSON5 from 'json5';
+import { join } from 'path';
+import JSON5 from 'json5';
 import { flatten } from 'lodash';
 import { fs } from 'mz';
+// @ts-expect-error
 import * as recursiveReaddir from 'recursive-readdir';
 import type { IPackage } from './find-package-infos';
 import type { IFileData } from './find-requires';
@@ -27,7 +28,6 @@ export async function getReasonFiles(
   rootPath: string,
   packageInfos: { [dep: string]: IPackage },
 ): Promise<IFileData> {
-  const nModulesPath = join(rootPath, 'node_modules');
   const reasonDependencies = Object.keys(packageInfos)
     .map(x => packageInfos[x].name)
     .filter(x => isReason(x, rootPath));

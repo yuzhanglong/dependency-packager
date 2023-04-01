@@ -50,24 +50,6 @@ function getDirectories(path: string): string[] {
   );
 }
 
-// Fields to check, in this order
-const MAIN_FIELDS = ['browser', 'module', 'main', 'unpkg'];
-
-/**
- * Finds the most appropriate main field to use from the package.json
- */
-function getMainField(pkg: IPackage) {
-  return MAIN_FIELDS.map((field) => {
-    const packageField = pkg[field];
-    // It can also be an object, don't allow it in that case
-    if (typeof packageField === 'string') {
-      return packageField;
-    }
-
-    return null;
-  }).find(x => x != null);
-}
-
 export default async function findPackageInfos(
   packageName: string,
   rootPath: string,

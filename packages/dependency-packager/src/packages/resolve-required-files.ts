@@ -1,93 +1,6 @@
-import { basename, dirname, join } from 'path';
+import { dirname, join } from 'path';
 import { fs } from 'mz';
 import type { IPackage } from './find-package-infos';
-
-const BLACKLISTED_DIRS = [
-  'demo',
-  'docs',
-  'benchmark',
-  'flow-typed',
-  'src',
-  'bundles',
-  'examples',
-  'scripts',
-  'tests',
-  'test',
-  'umd',
-  'min',
-  'node_modules',
-];
-
-async function getFilePathsInDirectory(path: string): Promise<string[]> {
-  const entries = await fs.readdir(path);
-
-  const entriesWithMetadata = await Promise.all(
-    entries
-      .map(fPath => join(path, fPath))
-      .map(async (entry) => {
-        const meta = await fs.lstat(entry);
-
-        return { entry, isDirectory: meta.isDirectory() };
-      }),
-  );
-
-  let files = entriesWithMetadata
-    .filter(x => !x.isDirectory)
-    .map(x => x.entry);
-  const childFiles = await Promise.all(
-    entriesWithMetadata
-      .filter(x => x.isDirectory)
-      .map(x => x.entry)
-      .filter(x => !BLACKLISTED_DIRS.includes(basename(x)))
-      .filter(x => !basename(x).startsWith('.'))
-      .map((dir: string) => getFilePathsInDirectory(dir)),
-  );
-
-  childFiles.forEach((f) => {
-    files = [...files, ...f];
-  });
-
-  return files;
-}
-
-const DISALLOWED_EXTENSIONS = ['min.js', 'umd.js', 'node.js', 'test.js'];
-const ALLOWED_EXTENSIONS = [
-  'json',
-  'js',
-  'css',
-  'scss',
-  'styl',
-  'less',
-  'vue',
-  'html',
-];
-
-function isValidFile(packagePath: string, packageInfo: IPackage) {
-  return (filePath: string) => {
-    const relDirName = filePath.replace(packagePath, '').slice(1);
-    if (basename(filePath).startsWith('.')) {
-      return false;
-    }
-
-    if (
-      BLACKLISTED_DIRS.some((dir) => {
-        return relDirName.startsWith(dir);
-      })
-    ) {
-      return false;
-    }
-
-    if (DISALLOWED_EXTENSIONS.some(ex => filePath.endsWith(ex))) {
-      return false;
-    }
-
-    if (ALLOWED_EXTENSIONS.some(ex => filePath.endsWith(ex))) {
-      return true;
-    }
-
-    return false;
-  };
-}
 
 const FALLBACK_DIRS = ['dist', 'lib', 'build'];
 
@@ -120,44 +33,7 @@ export default async function resolveRequiredFiles(
     return [];
   }
 
-  const browser
-    = typeof packageInfo.browser === 'object' ? packageInfo.browser : {};
-
-  const browserAliases: { [p: string]: string | false } = Object.keys(
-    browser,
-  ).reduce((total, path: string) => {
-    const relativePath = join(packagePath, path);
-    let resolvedPath = browser[path];
-    if (resolvedPath !== false) {
-      resolvedPath = join(packagePath, resolvedPath);
-    }
-
-    return {
-      ...total,
-      [relativePath]: resolvedPath,
-    };
-  }, {});
-
-  const isValidFileTest = isValidFile(entryDir, packageInfo);
-  // I removed this optimization Our browser and caching strategy is nowadays so sophisticated that
-  // this only introduces unnecessary bagage.
-  const files: string[] = true
-    ? []
-    : ((await getFilePathsInDirectory(entryDir))
-        .filter(isValidFileTest)
-        .map((path) => {
-          if (typeof browserAliases === 'object') {
-            if (browserAliases[path] === false) {
-              return null;
-            }
-
-            if (browserAliases[path]) {
-              return browserAliases[path];
-            }
-          }
-          return path;
-        })
-        .filter(x => x != null) as string[]);
+  const files: string[] = [];
 
   if (main) {
     [

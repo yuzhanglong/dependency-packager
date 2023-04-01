@@ -40,3 +40,6 @@
 // app.listen(PORT, () => {
 //   console.log(`Listening on ${PORT}`);
 // });
+
+export { packageDependency } from './packages/package-dependency';
+

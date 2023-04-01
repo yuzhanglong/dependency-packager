@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as npa from 'npm-package-arg';
-import * as execa from 'execa';
+import execa from 'execa';
 
 export async function installDependencies(
   dependency: { name: string; version: string },

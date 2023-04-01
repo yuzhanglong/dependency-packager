@@ -73,7 +73,7 @@ function verifyModuleField(pkg: IPackage, pkgLoc: string) {
   }
 }
 
-export const resolveDependency = async (dependency: DependencyInfo) => {
+export const packageDependency = async (dependency: DependencyInfo) => {
   const hash = getHash(dependency);
 
   const startTime = Date.now();
