@@ -12,6 +12,8 @@ export async function installDependencies(
   const depString = `${dependency.name}@${dependency.version}`;
   const spec = npa(depString);
 
+  console.log(packagePath);
+
   const file = await fs.pathExists(packagePath);
 
   // 如果该依赖已经被拉取，则跳过安装步骤
@@ -24,7 +26,7 @@ export async function installDependencies(
   try {
     await execa('mkdir', ['-p', packagePath]);
     await execa(
-      path.resolve(process.cwd(), 'node_modules', 'yarn', 'lib', 'cli.js'),
+      path.resolve(__dirname, '../..', 'node_modules', 'yarn', 'lib', 'cli.js'),
       [
         'add',
         depString,
@@ -40,6 +42,7 @@ export async function installDependencies(
       ],
       {
         cwd: packagePath,
+        stderr: 'inherit',
         env: {
           HOME: '/tmp'
         }
@@ -47,6 +50,7 @@ export async function installDependencies(
     );
   } catch (e) {
     console.warn(`got error from install: ${e}`);
+    await fs.remove(packagePath);
     return e.message.includes('versions') ? new Error('INVALID_VERSION') : e;
   }
 }

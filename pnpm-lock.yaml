@@ -29,6 +29,7 @@ importers:
       recursive-readdir: ^2.2.3
       recursive-readdir-sync: ^1.0.6
       resolve: ^1.22.1
+      yarn: ^1.22.19
     dependencies:
       execa: 5.1.1
       fs-extra: 11.1.1
@@ -42,6 +43,7 @@ importers:
       recursive-readdir: 2.2.3
       recursive-readdir-sync: 1.0.6
       resolve: 1.22.1
+      yarn: 1.22.19
     devDependencies:
       '@types/fs-extra': 11.0.1
 
@@ -5499,6 +5501,13 @@ packages:
     resolution: {integrity: sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==}
     engines: {node: '>=12'}
     dev: true
+
+  /yarn/1.22.19:
+    resolution: {integrity: sha512-/0V5q0WbslqnwP91tirOvldvYISzaqhClxzyUKXYxs07yUILIs5jx/k6CFe8bvKSkds5w+eiOqta39Wk3WxdcQ==}
+    engines: {node: '>=4.0.0'}
+    hasBin: true
+    requiresBuild: true
+    dev: false
 
   /yn/3.1.1:
     resolution: {integrity: sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==}
