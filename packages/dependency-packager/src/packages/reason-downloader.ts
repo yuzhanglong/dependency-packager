@@ -2,7 +2,6 @@ import { join } from 'path';
 import JSON5 from 'json5';
 import { flatten } from 'lodash';
 import { fs } from 'mz';
-// @ts-expect-error
 import * as recursiveReaddir from 'recursive-readdir';
 import type { IPackage } from './find-package-infos';
 import type { IFileData } from './find-requires';
