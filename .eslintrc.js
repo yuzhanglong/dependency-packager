@@ -1,4 +1,5 @@
 module.exports = {
+  root: true,
   extends: '@attachments/eslint-config',
   rules: {
     '@typescript-eslint/brace-style': 'off',

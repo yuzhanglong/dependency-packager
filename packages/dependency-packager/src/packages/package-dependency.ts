@@ -1,20 +1,16 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import findDependencyDependencies from '../dependencies/find-dependency-dependencies';
-import getHash from '../utils/get-hash';
 import { installDependencies } from '../dependencies/install-dependencies';
+import type { PackageInfo } from '../types';
+import { hashPackageInfo } from '../utils/get-hash';
 import type { IPackage } from './find-package-infos';
 import findPackageInfos from './find-package-infos';
 import type { IFileData } from './find-requires';
 import findRequires from './find-requires';
 
-interface DependencyInfo {
-  name: string;
-  version: string;
-}
-
 async function getContents(
-  dependency: any,
+  dependency: PackageInfo,
   packagePath: string,
   packageInfos: { [p: string]: IPackage },
 ): Promise<IFileData> {
@@ -37,9 +33,6 @@ async function getContents(
   return { ...contents, ...packageJSONFiles };
 }
 
-/**
- * Delete `module` field if the module doesn't exist at all
- */
 function verifyModuleField(pkg: IPackage, pkgLoc: string) {
   if (!pkg.module) {
     return;
@@ -73,25 +66,26 @@ function verifyModuleField(pkg: IPackage, pkgLoc: string) {
   }
 }
 
-export const packageDependency = async (dependency: DependencyInfo) => {
-  const hash = getHash(dependency);
+export const packageDependency = async (dependency: PackageInfo) => {
+  const hash = hashPackageInfo(dependency);
 
   const startTime = Date.now();
 
-  if (!hash) {
-    return;
-  }
-
   if (!dependency) {
-    return;
+    throw new Error('Please provide a dependency');
   }
 
-  const packagePath = path.join('/tmp', hash);
-  await installDependencies(dependency, packagePath);
+  if (!hash) {
+    throw new Error('Could not get hash');
+  }
+
+  const packagePath = path.resolve('/tmp', hash);
+
+  await installDependencies(dependency, packagePath, false);
   const packageInfos = await findPackageInfos(dependency.name, packagePath);
+
   Object.keys(packageInfos).forEach((pkgJSONPath) => {
     const pkg = packageInfos[pkgJSONPath];
-
     verifyModuleField(pkg, pkgJSONPath);
   });
 
@@ -103,21 +97,26 @@ export const packageDependency = async (dependency: DependencyInfo) => {
     const c = contents[p];
 
     if (c.requires) {
-      c.requires.forEach(r => requireStatements.push(r));
+      c.requires.forEach((r) => {
+        requireStatements.push(r);
+      });
     }
   });
 
+  const dependencyDependencies = findDependencyDependencies(
+    dependency,
+    packagePath,
+    packageInfos,
+    requireStatements,
+    contents
+  );
+
+  // eslint-disable-next-line no-console
   console.log(`Done - ${Date.now() - startTime} - ${dependency.name}@${dependency.version}`);
 
   return {
     contents,
     dependency,
-    ...findDependencyDependencies(
-      dependency,
-      packagePath,
-      packageInfos,
-      requireStatements,
-      contents,
-    ),
+    ...dependencyDependencies
   };
 };

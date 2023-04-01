@@ -1,3 +1,5 @@
+import type { PackageInfo } from '../types';
+
 const hash = (str) => {
   let hash = 5381;
   let i = str.length;
@@ -12,6 +14,7 @@ const hash = (str) => {
   return hash >>> 0;
 };
 
-export default function ({ name, version }: { name: string; version: string }) {
-  return String(hash(JSON.stringify(`${name}@${version}`)));
-}
+export const hashPackageInfo = (depInfo: PackageInfo) => {
+  const { name, version } = depInfo;
+  return hash(JSON.stringify(`${name}@${version}`)).toString();
+};
