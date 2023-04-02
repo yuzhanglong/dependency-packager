@@ -1,4 +1,3 @@
-// @ts-expect-error
 import * as walk from 'acorn-walk';
 import * as meriyah from 'meriyah';
 
@@ -15,6 +14,7 @@ export default function exportRequires(code: string) {
 
   const requires: string[] = [];
 
+  // @ts-expect-error
   walk.simple(ast, {
     ImportDeclaration(node: meriyah.ESTree.ImportDeclaration) {
       isModule = true;
