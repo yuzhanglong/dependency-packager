@@ -12,15 +12,13 @@ export async function installDependencies(
   const depString = `${dependency.name}@${dependency.version}`;
   const spec = npa(depString);
 
-  console.log(packagePath);
-
   const file = await fs.pathExists(packagePath);
 
   // 如果该依赖已经被拉取，则跳过安装步骤
   // TODO: 处理 babel@6 、latest 这种动态决定最新版本的情况，否则会导致本地缓存的不是最新版本
   if (!force && file) {
     console.log('Skip install --', depString);
-    return;
+    return true;
   }
 
   try {
@@ -48,9 +46,10 @@ export async function installDependencies(
         }
       }
     );
+    return true;
   } catch (e) {
     console.warn(`got error from install: ${e}`);
     await fs.remove(packagePath);
-    return e.message.includes('versions') ? new Error('INVALID_VERSION') : e;
+    return false;
   }
 }

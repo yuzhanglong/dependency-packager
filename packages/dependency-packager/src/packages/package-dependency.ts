@@ -81,7 +81,11 @@ export const packageDependency = async (dependency: PackageInfo) => {
 
   const packagePath = path.resolve('/tmp', hash);
 
-  await installDependencies(dependency, packagePath, false);
+  const isSuccess = await installDependencies(dependency, packagePath, false);
+  if (!isSuccess) {
+    throw new Error('Could not install dependencies');
+  }
+
   const packageInfos = await findPackageInfos(dependency.name, packagePath);
 
   Object.keys(packageInfos).forEach((pkgJSONPath) => {
