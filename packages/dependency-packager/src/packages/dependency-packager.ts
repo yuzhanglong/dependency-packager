@@ -14,14 +14,18 @@ export class DependencyPackager {
     });
   }
 
-  async packageDependency(dependency: PackageInfo) {
-    const packageHash = hashPackageInfo(dependency);
-    if (this.packageResultLRUCache.has(packageHash)) {
-      return this.packageResultLRUCache.get(packageHash);
+  async packageDependency(dependency: PackageInfo, useLRUCache?: boolean) {
+    if (!useLRUCache) {
+      return packageDependency(dependency);
     } else {
-      const result = await packageDependency(dependency);
-      this.packageResultLRUCache.set(packageHash, result);
-      return result;
+      const packageHash = hashPackageInfo(dependency);
+      if (this.packageResultLRUCache.has(packageHash)) {
+        return this.packageResultLRUCache.get(packageHash);
+      } else {
+        const result = await packageDependency(dependency);
+        this.packageResultLRUCache.set(packageHash, result);
+        return result;
+      }
     }
   }
 
