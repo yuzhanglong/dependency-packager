@@ -27,7 +27,7 @@
     "redis": "^4.6.6",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
-    "semver": "^7.5.0"
+    "semver": "^7.5.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
